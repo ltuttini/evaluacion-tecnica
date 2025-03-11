@@ -1,0 +1,6 @@
+@Yape.AntiFraud_HostAddress = http://localhost:5257
+
+GET {{Yape.AntiFraud_HostAddress}}/
+Accept: application/json
+
+###
