@@ -19,9 +19,13 @@ builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafk
 builder.Services.Configure<TransactionSettings>(builder.Configuration.GetSection("Transaction"));
 
 builder.Services.AddSingleton<AntiFraudStrategyFactory>(x=> {
+
+    int ammountLimit = Convert.ToInt32(builder.Configuration["AntiFraud:AmountLimit"]);
+    int accumulatedPerDay = Convert.ToInt32(builder.Configuration["AntiFraud:AccumulatedPerDay"]);
+
     var factory = new AntiFraudStrategyFactory();
-    factory.AddStrategy(new TransactionLimitStrategy(2000));
-    factory.AddStrategy(new AccumulatedPerDayStrategy(20000));
+    factory.AddStrategy(new TransactionLimitStrategy(ammountLimit));
+    factory.AddStrategy(new AccumulatedPerDayStrategy(accumulatedPerDay));
     return factory;
 });
 
