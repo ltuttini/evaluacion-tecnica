@@ -36,7 +36,7 @@ Librerias utilizadas
 Se requiere tener instalado Docker Desktop instalado en la PC donde se ejecute el proyecto
 
 Si se presentan mensajes de error relacionados con el archivo .sql, se relaciona al Visual Studio validando la sintaxis en base a Sql Server,
-para evitar este error se debe marcar la opcion
+para evitar este error se debe quitar la marcar la opcion
 
 ![transaction_sql_options](images/transaction_sql_options.jpg)
 
