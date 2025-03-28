@@ -19,15 +19,15 @@ namespace Yape.FinancialTransaction.Controllers
         [HttpPost]
         public async Task<IActionResult> Transaction([FromBody] CrearTransactionCommand comando)
         {
-            var resultado = await _mediator.Send(comando);
-            return Ok(resultado);
+            await _mediator.Send(comando);
+            return Ok();
         }
 
         [HttpPost("changestate")]
         public async Task<IActionResult> ChangeState([FromBody] ChangeStateCommand comando)
         {
-            var resultado = await _mediator.Send(comando);
-            return Ok(resultado);
+            await _mediator.Send(comando);
+            return Ok();
         }
 
     }

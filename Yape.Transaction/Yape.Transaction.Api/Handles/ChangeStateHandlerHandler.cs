@@ -6,7 +6,7 @@ using Yape.Transaction.Service;
 
 namespace Yape.FinancialTransaction.Handles
 {
-    public class ChangeStateHandler : IRequestHandler<ChangeStateCommand, bool>
+    public class ChangeStateHandler : IRequestHandler<ChangeStateCommand>
     {
         private readonly ITransactionService _transactionService;
         private readonly IMapper _mapper;
@@ -16,13 +16,12 @@ namespace Yape.FinancialTransaction.Handles
             _mapper = mapper;
         }
 
-        public async Task<bool> Handle(ChangeStateCommand request, CancellationToken cancellationToken)
+        public async Task Handle(ChangeStateCommand request, CancellationToken cancellationToken)
         {
             var transaction = _mapper.Map<TransactionEntity>(request);
 
-            await _transactionService.CreateAsync(transaction);
+            await _transactionService.ChangeStateAsync(transaction);
 
-            return true;
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Yape.FinancialTransaction.Handles
 {
-    public class CrearTransactionCommand : IRequest<bool>
+    public class CrearTransactionCommand : IRequest
     {
         public Guid SourceAccountId { get; set; }
         public Guid TargetAccountId { get; set; }

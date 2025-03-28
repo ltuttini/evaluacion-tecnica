@@ -1,0 +1,11 @@
+services:
+  yape.antifraud.api:
+    image: ${DOCKER_REGISTRY-}yapeantifraudapi
+    build:
+      context: .
+      dockerfile: Yape.AntiFraud.Api/Dockerfile
+    environment:
+     - ASPNETCORE_URLS=http://+:8082
+    ports:
+      - "8082:8080"
+

@@ -40,7 +40,7 @@ namespace Yape.AntiFraud.Core
             {
                 BootstrapServers = _kafkaSettings.BootstrapServers,
                 GroupId = _kafkaSettings.GroupId,
-                AutoOffsetReset = AutoOffsetReset.Earliest // O Latest, dependiendo de tus necesidades
+                AutoOffsetReset = AutoOffsetReset.Earliest
             };
 
             using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
@@ -54,6 +54,7 @@ namespace Yape.AntiFraud.Core
                         // Se obtiene el mensaje desde la queue
                         //
                         var consumeResult = consumer.Consume(stoppingToken);
+
                         _logger.LogInformation("Mensaje recibido: {0}", consumeResult.Message.Value);
 
                         var message = JsonSerializer.Deserialize<TransactionMessage>(consumeResult.Message.Value);
@@ -74,16 +75,17 @@ namespace Yape.AntiFraud.Core
                         string json = JsonSerializer.Serialize(transactionState);
                         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
+                        var response = await _clientHttp.PostAsync(_transactionSettings.Url, content);
 
-                        await _clientHttp.PostAsync(_transactionSettings.Url, content);
-
-
-                        Console.WriteLine($"Mensaje recibido: {consumeResult.Message.Value}");
+                        if(response.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            _logger.LogError("Http Error: {0}", response.StatusCode);
+                        }
 
                     }
-                    catch (ConsumeException ex)
+                    catch (Exception ex)
                     {
-                        _logger.LogError("Error consumiendo mensaje: {0}", ex.Error.Reason);
+                        _logger.LogError("Error consumiendo mensaje: {0}", ex.Message);
                     }
                 }
                 consumer.Close();

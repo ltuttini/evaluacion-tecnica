@@ -8,32 +8,32 @@ namespace Yape.Transaction.Infrastructure.Data.Configuration
     {
         public void Configure(EntityTypeBuilder<TransactionEntity> builder)
         {
-            builder.ToTable("Transaction");
+            builder.ToTable("transaction");
 
             builder.HasKey(e => e.Id);
 
             builder.Property(e => e.Id)
-                .HasColumnName("ID");
+                .HasColumnName("id");
 
 
             builder.Property(e => e.SourceAccountId)
-                .HasColumnName("SourceAccountId")
+                .HasColumnName("sourceaccountid")
                 .IsRequired();
 
             builder.Property(e => e.TargetAccountId)
-                .HasColumnName("TargetAccountId")
+                .HasColumnName("targetaccountid")
                 .IsRequired();
 
             builder.Property(e => e.TransferTypeId)
-                .HasColumnName("TransferTypeId")
+                .HasColumnName("transfertypeid")
                 .IsRequired();
 
             builder.Property(e => e.State)
-                .HasColumnName("State")
+                .HasColumnName("state")
                 .IsRequired();
 
             builder.Property(e => e.Value)
-                .HasColumnName("Value")
+                .HasColumnName("value")
                 .IsRequired();
 
         }

@@ -2,9 +2,9 @@
 {
     public class KafkaSettings
     {
-        public string BootstrapServers { get; set; }
-        public string GroupId { get; set; }
-        public string Topic { get; set; }
+        public required string BootstrapServers { get; set; }
+        public required string GroupId { get; set; }
+        public required string Topic { get; set; }
 
     }
 }

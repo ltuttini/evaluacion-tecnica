@@ -1,6 +1,0 @@
-@Yape.Transaction_HostAddress = http://localhost:5188
-
-GET {{Yape.Transaction_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

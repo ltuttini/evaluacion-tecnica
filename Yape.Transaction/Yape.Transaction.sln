@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yape.Transaction.Core", "Ya
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yape.Transaction.Infrastructure", "Yape.Transaction.Infrastructure\Yape.Transaction.Infrastructure.csproj", "{021542CB-B201-4222-A1C3-D9477AAACBF2}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9AD638CB-3051-4259-85C5-DCAD07E41441}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{021542CB-B201-4222-A1C3-D9477AAACBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{021542CB-B201-4222-A1C3-D9477AAACBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{021542CB-B201-4222-A1C3-D9477AAACBF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AD638CB-3051-4259-85C5-DCAD07E41441}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AD638CB-3051-4259-85C5-DCAD07E41441}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AD638CB-3051-4259-85C5-DCAD07E41441}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AD638CB-3051-4259-85C5-DCAD07E41441}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

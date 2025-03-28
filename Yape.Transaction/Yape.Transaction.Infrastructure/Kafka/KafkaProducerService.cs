@@ -36,6 +36,7 @@ namespace Yape.Transaction.Infrastructure.Kafka
                 catch (ProduceException<Null, string> e)
                 {
                     Console.WriteLine($"Falló la entrega del mensaje: {e.Error.Reason}");
+                    throw;
                 }
             }
         }
