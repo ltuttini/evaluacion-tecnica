@@ -8,6 +8,7 @@ namespace Yape.Transaction.Service
     {
         private readonly ITransactionRepository _transactionRepository;
         private readonly IKafkaProducerService _kafkaProducerService;
+
         public TransactionService(ITransactionRepository transactionRepository, IKafkaProducerService kafkaProducerService)
         {
             _transactionRepository = transactionRepository;

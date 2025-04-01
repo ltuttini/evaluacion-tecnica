@@ -1,43 +1,43 @@
 ﻿using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Yape.Transaction.Infrastructure.Entity;
+using static Confluent.Kafka.ConfigPropertyNames;
 
 namespace Yape.Transaction.Infrastructure.Kafka
 {
     public class KafkaProducerService : IKafkaProducerService
     {
+        private readonly IProducer<Null, string> _produce;
         private readonly KafkaSettings _configuration;
+        private readonly ILogger<KafkaProducerService> _logger;
 
-        public KafkaProducerService(IOptions<KafkaSettings> configuration)
+        public KafkaProducerService(IProducer<Null, string> produce,
+            IOptions<KafkaSettings> configuration, 
+            ILogger<KafkaProducerService> logger)
         {
+            _produce = produce;
             _configuration = configuration.Value;
+            _logger = logger;
         }
 
         public async Task ProduceAsync(TransactionEntity mensaje)
         {
-            var config = new ProducerConfig
+            try
             {
-                BootstrapServers = _configuration.BootstrapServers
-            };
+                string jsonMessage = JsonSerializer.Serialize(mensaje);
+                var deliveryReport = await _produce.ProduceAsync(_configuration.Topic, new Message<Null, string> { Value = jsonMessage });
 
-            using (var producer = new ProducerBuilder<Null, string>(config).Build())
+                _logger.LogInformation("Mensaje entregado a {0}", deliveryReport.Message);
+            }
+            catch (ProduceException<Null, string> e)
             {
-                try
-                {
-                    string jsonMessage = JsonSerializer.Serialize(mensaje);
-                    var deliveryReport = await producer.ProduceAsync(_configuration.Topic, new Message<Null, string> { Value = jsonMessage });
-                    
-                    Console.WriteLine($"Mensaje entregado a {deliveryReport.TopicPartitionOffset}");
-                }
-                catch (ProduceException<Null, string> e)
-                {
-                    Console.WriteLine($"Falló la entrega del mensaje: {e.Error.Reason}");
-                    throw;
-                }
+                _logger.LogError("Falló la entrega del mensaje: {0}", e.Error.Reason);
+                throw;
             }
         }
 

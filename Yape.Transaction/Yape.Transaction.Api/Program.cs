@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Yape.Transaction.Infrastructure.Data;
@@ -19,6 +20,16 @@ builder.Services.AddDbContext<TransactionDbContext>(options =>
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+builder.Services.AddSingleton<IProducer<Null, string>>(x =>
+{
+    var config = new ProducerConfig
+    {
+        BootstrapServers = builder.Configuration["KafkaSettings:BootstrapServers"]
+    };
+
+    return new ProducerBuilder<Null, string>(config).Build();
+});
 
 builder.Services.AddSingleton<IKafkaProducerService, KafkaProducerService>();
 

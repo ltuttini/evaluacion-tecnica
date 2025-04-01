@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Transactions;
 using Yape.AntiFraud.Core.Entity;
 using Yape.AntiFraud.Core.Settings;
 using Yape.AntiFraud.Strategy;
@@ -15,18 +13,21 @@ namespace Yape.AntiFraud.Core
 
     public class KafkaConsumerService : BackgroundService
     {
+        private readonly IConsumer<Ignore, string> _consumer;
         private readonly KafkaSettings _kafkaSettings;
         private readonly TransactionSettings _transactionSettings;
         private readonly HttpClient _clientHttp;
         private readonly ILogger<KafkaConsumerService> _logger;
         private readonly AntiFraudStrategyFactory _antiFraudStrategy;
 
-        public KafkaConsumerService(IOptions<KafkaSettings> kafkaSettings,
+        public KafkaConsumerService(IConsumer<Ignore, string> consumer,
+            IOptions<KafkaSettings> kafkaSettings,
             IOptions<TransactionSettings> transactionSettings,
             IHttpClientFactory clientFactory,
             AntiFraudStrategyFactory antiFraudStrategy,
             ILogger<KafkaConsumerService> logger)
         {
+            _consumer = consumer;
             _kafkaSettings = kafkaSettings.Value;
             _transactionSettings = transactionSettings.Value;
             _clientHttp = clientFactory.CreateClient();
@@ -36,59 +37,54 @@ namespace Yape.AntiFraud.Core
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var config = new ConsumerConfig
-            {
-                BootstrapServers = _kafkaSettings.BootstrapServers,
-                GroupId = _kafkaSettings.GroupId,
-                AutoOffsetReset = AutoOffsetReset.Earliest
-            };
 
-            using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
-            {
-                consumer.Subscribe(_kafkaSettings.Topic);
+            _consumer.Subscribe(_kafkaSettings.Topic);
 
-                while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                try
                 {
-                    try
+                    // Se obtiene el mensaje desde la queue
+                    //
+                    var consumeResult = _consumer.Consume(stoppingToken);
+
+                    _logger.LogInformation("Mensaje recibido: {0}", consumeResult.Message.Value);
+
+                    var message = JsonSerializer.Deserialize<TransactionMessage>(consumeResult.Message.Value);
+
+                    // Se aplica la estrategia que valida si pasa o no las reglas de aprobacion
+                    //
+                    var strategyResult = _antiFraudStrategy.ApplyLimits(message.Value);
+
+
+                    // Se envia la actualizacion invocando el microservicio de transacciones
+                    //
+                    var transactionState = new TransactionState()
                     {
-                        // Se obtiene el mensaje desde la queue
-                        //
-                        var consumeResult = consumer.Consume(stoppingToken);
+                        Id = message.Id,
+                        State = strategyResult ? State.Approved : State.Rejected
+                    };
 
-                        _logger.LogInformation("Mensaje recibido: {0}", consumeResult.Message.Value);
+                    string json = JsonSerializer.Serialize(transactionState);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                        var message = JsonSerializer.Deserialize<TransactionMessage>(consumeResult.Message.Value);
+                    var response = await _clientHttp.PostAsync(_transactionSettings.Url, content);
 
-                        // Se aplica la estrategia que valida si pasa o no las reglas de aprobacion
-                        //
-                        var strategyResult = _antiFraudStrategy.ApplyLimits(message.Value);
-
-
-                        // Se envia la actualizacion invocando el microservicio de transacciones
-                        //
-                        var transactionState = new TransactionState()
-                        {
-                            Id = message.Id,
-                            State = strategyResult ? State.Approved : State.Rejected
-                        };
-
-                        string json = JsonSerializer.Serialize(transactionState);
-                        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                        var response = await _clientHttp.PostAsync(_transactionSettings.Url, content);
-
-                        if(response.StatusCode != System.Net.HttpStatusCode.OK)
-                        {
-                            _logger.LogError("Http Error: {0}", response.StatusCode);
-                        }
-
-                    }
-                    catch (Exception ex)
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        _logger.LogError("Error consumiendo mensaje: {0}", ex.Message);
+                        _logger.LogInformation("Http Success: {0}", json);
                     }
+                    else
+                    {
+                        _logger.LogError("Http Error: {0}", response.StatusCode);
+                    }
+
                 }
-                consumer.Close();
+                catch (Exception ex)
+                {
+                    _logger.LogError("Error consumiendo mensaje: {0}", ex.Message);
+                }
+
             }
 
             await Task.CompletedTask;

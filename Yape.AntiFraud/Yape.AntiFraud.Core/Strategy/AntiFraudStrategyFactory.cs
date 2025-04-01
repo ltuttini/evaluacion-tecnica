@@ -15,10 +15,13 @@
 
         public bool ApplyLimits(decimal amount)
         {
-            bool result = false;
+            bool result = true;
             foreach (var estrategia in _strategy)
             {
-                estrategia.Limit(amount);
+                result = estrategia.Limit(amount);
+
+                if(!result)
+                    break;
             }
 
             return result;

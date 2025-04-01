@@ -1,3 +1,4 @@
+using Confluent.Kafka;
 using Yape.AntiFraud.Core;
 using Yape.AntiFraud.Core.Settings;
 using Yape.AntiFraud.Strategy;
@@ -13,6 +14,17 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddHttpClient();
 
+builder.Services.AddSingleton<IConsumer<Ignore, string>>(x =>
+{
+    var config = new ConsumerConfig
+    {
+        BootstrapServers = builder.Configuration["Kafka:BootstrapServers"],
+        GroupId = builder.Configuration["Kafka:GroupId"],
+        AutoOffsetReset = AutoOffsetReset.Earliest
+    };
+
+    return new ConsumerBuilder<Ignore, string>(config).Build();
+});
 
 builder.Services.AddHostedService<KafkaConsumerService>();
 
